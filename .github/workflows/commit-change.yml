@@ -60,25 +60,6 @@ jobs:
           npm pkg set 'bugs.url'="${{ github.event.repository.html_url }}/issues"
           npm pkg set 'author'="${{ github.triggering_actor }}"
 
-      - name: Reinstall dependencies
-        continue-on-error: true
-        run: |
-          echo PACKAGE_MANAGER="${{ env.PACKAGE_MANAGER }}"
-          if [ "${{ env.PACKAGE_MANAGER }}" == "pnpm" ]; then
-            pnpm install --no-frozen-lockfile
-          elif [ "${{ env.PACKAGE_MANAGER }}" == "yarn" ]; then
-            if [ -d ".yarn" ]; then
-              yarn set version from sources
-            else
-              yarn policies set-version stable
-            fi
-            yarn install --no-immutable
-          else
-            npm install
-          fi
-        env:
-          NODE_OPTIONS: --max_old_space_size=10240
-
       - name: Install preconfig dependencies if exists
         continue-on-error: true
         run: |
@@ -91,16 +72,9 @@ jobs:
         env:
           NODE_OPTIONS: --max_old_space_size=10240
 
-      - name: Add tea file if not exists
-        if: ${{ hashFiles('tea.yaml') == '' }}
-        run: |
-          if [ ! -z "${{ vars.TEA_YAML || env.TEA_YAML || secrets.TEA_YAML }}" ]; then
-            echo "${{ vars.TEA_YAML || env.TEA_YAML || secrets.TEA_YAML }}" > tea.yaml
-          fi
-
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: 'Bump version ${{ github.event.release.tag_name }}'
+          commit_message: 'New updated version ${{ github.event.release.tag_name }}'
           push_options: --force
 
       - name: Change tag reference
